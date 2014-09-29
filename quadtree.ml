@@ -81,10 +81,11 @@ let rec insert (q: 'a quadtree) (c : coord) (s:'a) : 'a quadtree =
                                )) c s 
                       
                       in
-                          let rec travList (l) (newNode) : 'a quadtree = newNode
-                          in (match l with
+                          let rec travList (l) (newNode) : 'a quadtree =
+                           (match l with
                                [] -> newNode
                               | h::t-> travList (t) (insert (newNode) (fst h) (snd h)))
+                          in travList l newNode
                                 
                  else Leaf (r, (c,s)::l) 
 

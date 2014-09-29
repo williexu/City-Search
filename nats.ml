@@ -150,13 +150,15 @@ exception Unrepresentable
 let ( + ) (l1:int list) (l2:int list) : int list =
     List.fold_left (fun acc x -> x::acc) l2 l1
 
-(*check*)
-let ( * ) (l1:int list) (l2:int list) : int list = failwith "hi"
-    (*match l2 with
-    [] -> []
-    |h::t ->
-    let rec make_product_list (l1:int list) (l2:int list)
-    List.fold_left (fun acc x -> List.fold_left (fun acc1 y -> y::acc1) [] l1) [] l2*)
+let ( * ) (l1:int list) (l2:int list) : int list =
+   let rec make_product_list (l1:int list) (l2:int list) (lProd : int list) : int list =
+    let orig_l1 = l1 in
+     match l2 with
+     [] -> []
+     | h::t -> match l1 with
+              [] -> make_product_list orig_l1 t lProd
+              | x::xs -> make_product_list xs l2 (x::lProd) in
+    make_product_list l1 l2 []
 
 let ( < ) (l1:int list) (l2:int list) : bool =
     (List.length(l1)<List.length(l2))
@@ -175,7 +177,57 @@ let nat_of_int (y:int) : int list =
          then make_nat_list [] y
          else raise Unrepresentable
 
-
 end
 
+(* NatConvertFn *)
 
+module NatConvertFn ( N : NATN ) = struct
+   let int_of_nat ( n : N . t ): int = N.int_of_nat n
+   let nat_of_int ( n : int ): N . t = N.nat_of_int n
+end
+
+(* AlienNatFn *)
+
+let add (x:int) (y:int) : int = x+y
+
+module AlienNatFn ( M : AlienMapping ): NATN = struct
+    type t = M . aliensym list
+    
+    let zero = [M.zero]
+    let one = [M.one]
+
+    exception Unrepresentable
+
+    let ( + ) (l1:M.aliensym list) (l2:M.aliensym list) : M.aliensym list =
+         List.fold_left (fun acc x -> x::acc) l2 l1
+
+    let ( * ) (l1:M.aliensym list) (l2:M.aliensym list) : M.aliensym list =
+       let sum_of_list (l:M.aliensym list) : int =
+               List.fold_left (fun acc x -> add (acc) (M.int_of_aliensym(x))) 0 l in
+          let product_of_sums (l1:M.aliensym list) (l2:M.aliensym list) : int =
+             (sum_of_list(l1))*(sum_of_list(l2)) in
+             let product = product_of_sums (l1) (l2) in
+           let rec make_aliensymlist_of_product (lst:M.aliensym list) (prod:int) =
+             if (prod = 0) then [M.zero] else make_aliensymlist_of_product (M.one::lst) (prod-1) in
+             make_aliensymlist_of_product [] product
+          
+    let ( < ) (l1:M.aliensym list) (l2:M.aliensym list) : bool =
+         (List.length(l1)<List.length(l2))
+
+    let ( === ) (l1:M.aliensym list) (l2:M.aliensym list) : bool =
+          (List.length(l1)=List.length(l2))
+
+    let int_of_nat (l1:M.aliensym list) : int =
+
+          List.fold_left (fun acc x-> add (acc) (M.int_of_aliensym(x))) 0 l1
+
+    let nat_of_int (y:int) : M.aliensym list =
+      let rec make_nat_list (l:M.aliensym list)(x:int) : M.aliensym list =
+         if (x=0) then [M.zero] else make_nat_list (M.one::l) (x-1) 
+      in
+         if (y>=0) 
+         then make_nat_list [] y
+         else raise Unrepresentable
+
+
+end

@@ -4,11 +4,12 @@ open Quadtree
 let load_city_data (s:string) : string quadtree =
   let (cl : city list) = parse (s) in
     let n1 = new_tree ((-90.,-180.), (90.,180.)) in
-     let rec traverseCities (cl) (n1) : string quadtree = n1 in
+     let rec traverseCities (cl) (n1) : string quadtree =
       match cl with
       [] -> n1
       | x::xs -> match x with
                (lat,long,name) -> traverseCities (xs) (insert (n1) (lat,long) (name))
+      in traverseCities cl n1
 
 
 let city_search (q: string quadtree) (r : region) : string list =
