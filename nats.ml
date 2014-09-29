@@ -40,6 +40,7 @@ module type NATN = sig
     * Arguments : It takes in two arguments of type t.
     * Pre-condition : Both arguments must be of type t.
     * Post-condition : It returns the product of its arguments, and the product is of type t.
+    * If the sum exceeds the maximum possible value of t, it returns the Unrepresentable exception.
 
     * ( * ) is assosciative, i.e., (a*b)*c === a*(b*c) (the order of evaluation of
     * arguments does not matter.)
@@ -52,8 +53,9 @@ module type NATN = sig
     * passed to it is smaller.
     * Arguments : It takes in two arguments of type t.
     * Pre-condition : Both arguments must be of type t.
-    * Post-condition : It returns a bool - true if first argument is amller than the second
+    * Post-condition : It returns a bool - true if first argument is smaller than the second
     * and false otherwise.
+    * If the product exceeds the maximum possible value of t, it returns the Unrepresentable exception.
   *)
   val ( < ) : t -> t -> bool
 
@@ -102,5 +104,78 @@ let sum_overflows (i1:int) (i2:int) : bool =
 (* Add your solution here for IntNat, ListNat, NatConvertFn, 
    and AlienNatFn, being careful to use the declarations and
    types specified in the problem set. *)
+
+
+(* IntNat *)
+module IntNat : NATN = struct
+type t = int
+
+let zero = 0
+let one = 1
+exception Unrepresentable
+
+let ( + ) (x:int) (y:int) : int = 
+     if ((x+y)<0) then raise Unrepresentable else (x+y)
+
+let ( * ) (x:int) (y:int) : int = 
+       if (((max_int/x)/y)=0) then raise Unrepresentable else (x*y)
+
+let ( < ) (x:int) (y:int) : bool = (x<y)
+
+let ( === ) (x:int) (y:int) : bool = (x=y)
+
+
+
+let int_of_nat (x:t) : int =
+    if (x>max_int) then raise Unrepresentable else x
+
+let nat_of_int (y:int) : t =
+    if (y<0) then raise Unrepresentable else y
+
+end
+
+(* ListNat *)
+module ListNat : NATN = struct
+(* The list [ a1 ; ...; an ] represents the
+* natural number n . That is , the list lst represents
+* length ( lst ). The empty list represents 0. The values of
+* the list elements are irrelevant . *)
+type t = int list
+
+let zero = []
+let one = [1]
+
+exception Unrepresentable
+
+let ( + ) (l1:int list) (l2:int list) : int list =
+    List.fold_left (fun acc x -> x::acc) l2 l1
+
+(*check*)
+let ( * ) (l1:int list) (l2:int list) : int list = failwith "hi"
+    (*match l2 with
+    [] -> []
+    |h::t ->
+    let rec make_product_list (l1:int list) (l2:int list)
+    List.fold_left (fun acc x -> List.fold_left (fun acc1 y -> y::acc1) [] l1) [] l2*)
+
+let ( < ) (l1:int list) (l2:int list) : bool =
+    (List.length(l1)<List.length(l2))
+
+let ( === ) (l1:int list) (l2:int list) : bool =
+    (List.length(l1)=List.length(l2))
+
+let int_of_nat (l1:int list) : int =
+    List.length(l1)
+
+let nat_of_int (y:int) : int list =
+      let rec make_nat_list (l:int list)(x:int) : int list =
+         if (x=0) then [] else make_nat_list (0::l) (x-1) 
+      in
+         if (y>=0) 
+         then make_nat_list [] y
+         else raise Unrepresentable
+
+
+end
 
 
