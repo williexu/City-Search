@@ -115,16 +115,17 @@ let one = 1
 exception Unrepresentable
 
 let ( + ) (x:int) (y:int) : int = 
-     if ((x+y)<0) then raise Unrepresentable else (x+y)
+     if (sum_overflows x y) then raise Unrepresentable else (x+y)
 
-let ( * ) (x:int) (y:int) : int = 
-       if (((max_int/x)/y)=0) then raise Unrepresentable else (x*y)
+let ( * ) (x:int) (y:int) : int =
+       let rec add_recursive (product: int) (x:int) (y:int) : int =
+            if (y=0) then product else add_recursive ((+) (product) (x)) (x) (y-1)
+          in add_recursive 0 x y
+       (*if (((max_int/x)/y)=0) then raise Unrepresentable else (x*y)*)
 
 let ( < ) (x:int) (y:int) : bool = (x<y)
 
 let ( === ) (x:int) (y:int) : bool = (x=y)
-
-
 
 let int_of_nat (x:t) : int =
     if (x>max_int) then raise Unrepresentable else x
@@ -148,16 +149,16 @@ let one = [1]
 exception Unrepresentable
 
 let ( + ) (l1:int list) (l2:int list) : int list =
-    List.fold_left (fun acc x -> x::acc) l2 l1
+    List.fold_left (fun acc x -> 1::acc) l2 l1
 
 let ( * ) (l1:int list) (l2:int list) : int list =
+  let orig_l1 = l1 in
    let rec make_product_list (l1:int list) (l2:int list) (lProd : int list) : int list =
-    let orig_l1 = l1 in
      match l2 with
-     [] -> []
+     [] -> lProd
      | h::t -> match l1 with
               [] -> make_product_list orig_l1 t lProd
-              | x::xs -> make_product_list xs l2 (x::lProd) in
+              | x::xs -> make_product_list xs l2 (1::lProd) in
     make_product_list l1 l2 []
 
 let ( < ) (l1:int list) (l2:int list) : bool =
@@ -171,7 +172,7 @@ let int_of_nat (l1:int list) : int =
 
 let nat_of_int (y:int) : int list =
       let rec make_nat_list (l:int list)(x:int) : int list =
-         if (x=0) then [] else make_nat_list (0::l) (x-1) 
+         if (x=0) then l else make_nat_list (1::l) (x-1) 
       in
          if (y>=0) 
          then make_nat_list [] y

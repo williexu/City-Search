@@ -70,7 +70,7 @@ let rec insert (q: 'a quadtree) (c : coord) (s:'a) : 'a quadtree =
             
              let diagCentre r : (float*float) = ((fst (fst r) +. fst (snd r)) /. 2.), ((snd (fst r) +. snd (snd r)) /.2.) in
 
-                 if List.length(l) > 0 && diagLength r > min_diagonal 
+                 if ((List.length(l) > 0) && (diagLength r > min_diagonal)) 
                 
                  then let newNode : 'a quadtree = insert (Node(r, 
                  
@@ -81,10 +81,10 @@ let rec insert (q: 'a quadtree) (c : coord) (s:'a) : 'a quadtree =
                                )) c s 
                       
                       in
-                          let rec travList (l) (newNode) : 'a quadtree =
-                           (match l with
-                               [] -> newNode
-                              | h::t-> travList (t) (insert (newNode) (fst h) (snd h)))
+                          let rec travList (ls) (newNode1) : 'a quadtree =
+                           (match ls with
+                               [] -> newNode1
+                              | h::t-> travList (t) (insert (newNode1) (fst h) (snd h)))
                           in travList l newNode
                                 
                  else Leaf (r, (c,s)::l) 
