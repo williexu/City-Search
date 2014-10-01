@@ -3,78 +3,83 @@
 module type NATN = sig
   type t
   
-  (* val zero:t is a value declaration in the NATN signature.
+  (** val zero:t is a value declaration in the NATN signature.
     * The name of the value declaration is zero and its type is t.
     * Pre-condition : Must be of type t
     * Post-condition : Must be of type t
 
     * zero is an identity element for addition, i.e, zero added to
-    * any other value of type t returns the value.
+    * any other value of type t returns a value that represents the same 
+    * natural number.
 
     * zero multiplied by any other value of type t
     * returns zero.
-  *)
+    *)
   val zero : t
   
-  (* val one:t is a value declaration in the NATN signature.
+  (** val one:t is a value declaration in the NATN signature.
     * The name of the value declaration is one and its type is t.
     * Pre-condition : Must be of type t
     * Post-condition : Must be of type t
 
     * one is an identity element for multiplication, i.e, one multiplied by
-    * any other value of type t returns the value.
-  *)
+    * any other value of type t returns a value representing that same natural
+    * number.
+    *)
   val one : t
 
-  (* val ( + ) behaves like the operator '+'. It returns the sum of two values of type t.
+  (** val ( + ) behaves like the operator '+'. It returns the sum of two values of type t.
     * Arguments : It takes in two arguments of type t.
     * Pre-condition : Both arguments must be of type t.
     * Post-condition : It returns the sum of its arguments, and the sum is of type t.
 
     * ( + ) is assosciative, i.e., (a+b)+c === a+(b+c) (the order of evaluation of
     * arguments does not matter.)
-  *)
+    *)
   val ( + ) : t -> t -> t
 
-  (* val ( * ) behaves like the operator '*'. It returns the product of two values of type t.
+  (** val ( * ) behaves like the operator '*'. It returns the product of two values of type t.
     * Arguments : It takes in two arguments of type t.
     * Pre-condition : Both arguments must be of type t.
     * Post-condition : It returns the product of its arguments, and the product is of type t.
-    * If the sum exceeds the maximum possible value of t, it returns the Unrepresentable exception.
 
     * ( * ) is assosciative, i.e., (a*b)*c === a*(b*c) (the order of evaluation of
     * arguments does not matter.)
 
     * ( * ) is distributive over ( + ), i.e., a*(b+c) = a*b + a+c
-  *)
+
+    * if the output exceeds the max value of t, then raise Unrepresentable exception
+    *)
   val ( * ) : t -> t -> t 
 
-  (* val ( < ) behaves like the operator '<'. It returns a boolean value depending on which argument
+  (** val ( < ) behaves like the operator '<'. It returns a boolean value depending on which argument
     * passed to it is smaller.
     * Arguments : It takes in two arguments of type t.
     * Pre-condition : Both arguments must be of type t.
-    * Post-condition : It returns a bool - true if first argument is smaller than the second
+    * Post-condition : It returns a bool - true if first argument is amller than the second
     * and false otherwise.
-    * If the product exceeds the maximum possible value of t, it returns the Unrepresentable exception.
-  *)
+
+    * if the output exceeds the max value of t, then raise Unrepresentable exception
+    *)
   val ( < ) : t -> t -> bool
 
-  (* val ( === ) behaves like the operator '='. It returns a boolean value depending on whether the
+  (** val ( === ) behaves like the operator '='. It returns a boolean value depending on whether the
     * arguments passed to it are equal or not.
     * Arguments : It takes in two arguments of type t.
     * Pre-condition : Both arguments must be of type t.
     * Post-condition : It returns a bool - true if the arguments are equal and false otherwise.
-  *)
+    *)
   val ( === ) : t -> t -> bool
 			    
   exception Unrepresentable
   
-  (* This function is used to convert from a natural number to the int type.
+  (** This function is used to convert from a natural number to the int type.
     * Arguments : It takes in a value of type t (a natural number.)
     * Pre-condition : Argument must be of type t.
     * Post-condition : The functions returns the int representation of t if possible.
-    * Not all natural numbers are representable with int (like 2 128 ),
-    * so this function raises the Unrepresantable exception in such scenarios. *)
+    * Not all natural numbers are representable with int (like 2^128 ),
+    * so this function raises the Unrepresantable exception in such scenarios. 
+    *)
   val int_of_nat: t -> int
 
   (* This function is used to convert from the int type number to a natural number.
@@ -105,130 +110,122 @@ let sum_overflows (i1:int) (i2:int) : bool =
    and AlienNatFn, being careful to use the declarations and
    types specified in the problem set. *)
 
+module IntNat: NATN = struct
+  type t = int
+  exception Unrepresentable
 
-(* IntNat *)
-module IntNat : NATN = struct
-type t = int
+  let zero = 0
+  let one = 1
+  let ( + ) (x: int) (y:int): int = 
+    let sum_overflows ( i1 : int ) ( i2 : int ) : bool =
+      (x + y + 1) < 0 in
+    if (sum_overflows x y) || (x < 0) || y < 0 then raise Unrepresentable 
+    else x + y
 
-let zero = 0
-let one = 1
-exception Unrepresentable
+  let ( * ) (x:int) (y: int): int = 
+    let product_overflows ( i1 : int ) ( i2 : int ) : bool =
+      (max_int/x)/y = 0 in
+    if (product_overflows x y) || (x < 0) || y < 0 then raise Unrepresentable 
+    else x * y
 
-let ( + ) (x:int) (y:int) : int = 
-     if (sum_overflows x y) then raise Unrepresentable else (x+y)
+  let ( < ) (x:int) (y:int): bool =
+    if  (x < 0) || y < 0 then raise Unrepresentable 
+    else x < y
 
-let ( * ) (x:int) (y:int) : int =
-       let rec add_recursive (product: int) (x:int) (y:int) : int =
-            if (y=0) then product else add_recursive ((+) (product) (x)) (x) (y-1)
-          in add_recursive 0 x y
-       (*if (((max_int/x)/y)=0) then raise Unrepresentable else (x*y)*)
+  let ( === ) (x:int) (y:int): bool=
+    if  (x < 0) || y < 0 then raise Unrepresentable 
+    else x = y
 
-let ( < ) (x:int) (y:int) : bool = (x<y)
+  let int_of_nat (x:int): int =
+    if  (x < 0) then raise Unrepresentable 
+    else x
 
-let ( === ) (x:int) (y:int) : bool = (x=y)
-
-let int_of_nat (x:t) : int =
-    if (x>max_int) then raise Unrepresentable else x
-
-let nat_of_int (y:int) : t =
-    if (y<0) then raise Unrepresentable else y
-
+  let nat_of_int (x:int): int =
+    if  (x < 0) then raise Unrepresentable 
+    else x
 end
 
-(* ListNat *)
-module ListNat : NATN = struct
-(* The list [ a1 ; ...; an ] represents the
-* natural number n . That is , the list lst represents
-* length ( lst ). The empty list represents 0. The values of
-* the list elements are irrelevant . *)
-type t = int list
+module ListNat: NATN = struct
+(** The list [ a1 ; ...; an ] represents the
+  * natural number n . That is , the list lst represents
+  * length ( lst ). The empty list represents 0. The values of
+  * the list elements are irrelevant.
+  * ( * ) can only be used to make a product <= max_int
+  *)
+  type t = int list
+  exception Unrepresentable
 
-let zero = []
-let one = [1]
+  let zero = []
+  let one = [0]
+  let ( + ) (x: int list) (y:int list): int list= 
+    List.fold_left (fun acc z -> z:: acc) y x
 
-exception Unrepresentable
+  let ( * ) (x:int list) (y: int list): int list= 
+    let rec make_product (a: int)(b: int list): int list=
+      if a = 0 then b
+      else make_product (a-1) (0:: b) in
+    make_product((List.length x) * (List.length y)) []
 
-let ( + ) (l1:int list) (l2:int list) : int list =
-    List.fold_left (fun acc x -> 1::acc) l2 l1
+  let ( < ) (x:int list) (y:int list): bool =
+    (List.length x) < (List.length y)
 
-let ( * ) (l1:int list) (l2:int list) : int list =
-  let orig_l1 = l1 in
-   let rec make_product_list (l1:int list) (l2:int list) (lProd : int list) : int list =
-     match l2 with
-     [] -> lProd
-     | h::t -> match l1 with
-              [] -> make_product_list orig_l1 t lProd
-              | x::xs -> make_product_list xs l2 (1::lProd) in
-    make_product_list l1 l2 []
+  let ( === ) (x:int list) (y:int list): bool=
+    (List.length x) = (List.length y)
 
-let ( < ) (l1:int list) (l2:int list) : bool =
-    (List.length(l1)<List.length(l2))
+  let int_of_nat (x:int list): int =
+    List.length x
 
-let ( === ) (l1:int list) (l2:int list) : bool =
-    (List.length(l1)=List.length(l2))
-
-let int_of_nat (l1:int list) : int =
-    List.length(l1)
-
-let nat_of_int (y:int) : int list =
-      let rec make_nat_list (l:int list)(x:int) : int list =
-         if (x=0) then l else make_nat_list (1::l) (x-1) 
-      in
-         if (y>=0) 
-         then make_nat_list [] y
-         else raise Unrepresentable
-
+  let nat_of_int (x: int) : int list =
+    let rec make_product (a: int)(b: int list): int list=
+      if a = 0 then b
+      else make_product (a-1) (0:: b) in
+    if (x >= 0) then (make_product x [])
+    else raise Unrepresentable 
 end
-
-(* NatConvertFn *)
 
 module NatConvertFn ( N : NATN ) = struct
-   let int_of_nat ( n : N . t ): int = N.int_of_nat n
-   let nat_of_int ( n : int ): N . t = N.nat_of_int n
+  let int_of_nat ( n : N . t ): int = N.int_of_nat n
+  let nat_of_int ( n : int ): N . t = N.nat_of_int n
 end
 
-(* AlienNatFn *)
-
-let add (x:int) (y:int) : int = x+y
+let add_int (a: int)(b: int): int = a + b
 
 module AlienNatFn ( M : AlienMapping ): NATN = struct
-    type t = M . aliensym list
-    
-    let zero = [M.zero]
-    let one = [M.one]
+(** The list [ M.aliensym1 ; ...; M.aliensymn ] represents the
+  * natural number (M.aliensym1 + M.aliensym2 + ... M.aliensymn). 
+  * ( * ) can only be used to make a product <= max_int
+  *)
+  type t = M.aliensym list
+  exception Unrepresentable
 
-    exception Unrepresentable
+  let zero = [M.zero]
+  let one = [M.one]   
+  let ( + ) (x: t) (y: t): t = 
+    List.fold_left (fun acc s -> s:: acc) x y
 
-    let ( + ) (l1:M.aliensym list) (l2:M.aliensym list) : M.aliensym list =
-         List.fold_left (fun acc x -> x::acc) l2 l1
+  let ( * ) (x: t) (y: t): t = 
+    let rec make_product (a: int)(b: t): t=
+      if a = 0 then b
+      else make_product (a-1) (M.one:: b) in
+    make_product((List.fold_left (fun acc s -> add_int(M.int_of_aliensym s) acc) 0 x) 
+      * (List.fold_left (fun acc s -> add_int(M.int_of_aliensym s) acc) 0 y)) []
 
-    let ( * ) (l1:M.aliensym list) (l2:M.aliensym list) : M.aliensym list =
-       let sum_of_list (l:M.aliensym list) : int =
-               List.fold_left (fun acc x -> add (acc) (M.int_of_aliensym(x))) 0 l in
-          let product_of_sums (l1:M.aliensym list) (l2:M.aliensym list) : int =
-             (sum_of_list(l1))*(sum_of_list(l2)) in
-             let product = product_of_sums (l1) (l2) in
-           let rec make_aliensymlist_of_product (lst:M.aliensym list) (prod:int) =
-             if (prod = 0) then [M.zero] else make_aliensymlist_of_product (M.one::lst) (prod-1) in
-             make_aliensymlist_of_product [] product
-          
-    let ( < ) (l1:M.aliensym list) (l2:M.aliensym list) : bool =
-         (List.length(l1)<List.length(l2))
+  let ( < ) (x:t) (y:t): bool =
+    (List.fold_left (fun acc s -> add_int (M.int_of_aliensym s) acc) 0 x) 
+      < (List.fold_left (fun acc s -> add_int (M.int_of_aliensym s) acc) 0 y)
 
-    let ( === ) (l1:M.aliensym list) (l2:M.aliensym list) : bool =
-          (List.length(l1)=List.length(l2))
+  let ( === ) (x:t) (y:t): bool=
+    (List.fold_left (fun acc s -> add_int(M.int_of_aliensym s) acc) 0 x) 
+      = (List.fold_left (fun acc s -> add_int(M.int_of_aliensym s) acc) 0 y)
 
-    let int_of_nat (l1:M.aliensym list) : int =
+  let int_of_nat (x:t): int =
+    (List.fold_left (fun acc s -> add_int(M.int_of_aliensym s) acc) 0 x)
 
-          List.fold_left (fun acc x-> add (acc) (M.int_of_aliensym(x))) 0 l1
-
-    let nat_of_int (y:int) : M.aliensym list =
-      let rec make_nat_list (l:M.aliensym list)(x:int) : M.aliensym list =
-         if (x=0) then [M.zero] else make_nat_list (M.one::l) (x-1) 
-      in
-         if (y>=0) 
-         then make_nat_list [] y
-         else raise Unrepresentable
-
-
+  let nat_of_int (x:int): t =
+    let rec make_product (a: int)(b: t): t=
+      if a = 0 then b
+      else make_product (a-1) (M.one:: b) in
+    make_product(x) []
 end
+
+
