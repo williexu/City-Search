@@ -207,8 +207,18 @@ module AlienNatFn ( M : AlienMapping ): NATN = struct
   type t = M.aliensym list
   exception Unrepresentable
 
-  let zero = [M.zero]
-  let one = [M.one]   
+(** helper that sums the alien syms in the inputted list and returns the int 
+  * equivalent. If at any time while adding, the elements added becomes
+  * greater than max_int, it raises Unrepresentable 
+  * Precondition: z is type t (M.aliensym list)
+  * Postcondition: returns type int that is non-negative
+  *)
+  let add_list (z:t): int = (List.fold_left (fun acc s -> 
+      let (new_acc: int)= add_int(M.int_of_aliensym s) acc in
+        if (new_acc < 0) then raise Unrepresentable else new_acc) 0 z)
+
+  let zero = []
+  let one = [M.one] 
   let ( + ) (x: t) (y: t): t = 
     List.fold_left (fun acc s -> s:: acc) x y
 
@@ -216,25 +226,29 @@ module AlienNatFn ( M : AlienMapping ): NATN = struct
     let rec make_product (a: int)(b: t): t=
       if a = 0 then b
       else make_product (a-1) (M.one:: b) in
-    make_product((List.fold_left (fun acc s -> add_int(M.int_of_aliensym s) acc) 0 x) 
-      * (List.fold_left (fun acc s -> add_int(M.int_of_aliensym s) acc) 0 y)) []
+    let (xint: int) = add_list x in
+    let (yint: int) = add_list y in
+    let product_overflows ( i1 : int ) ( i2 : int ) : bool =
+      (max_int/i1)/i2 = 0 in
+    if xint = 0 || yint = 0 then zero else
+      if (product_overflows xint yint) then raise Unrepresentable 
+      else make_product(xint * yint) []
 
   let ( < ) (x:t) (y:t): bool =
-    (List.fold_left (fun acc s -> add_int (M.int_of_aliensym s) acc) 0 x) 
-      < (List.fold_left (fun acc s -> add_int (M.int_of_aliensym s) acc) 0 y)
+    (add_list x) < (add_list y)
 
   let ( === ) (x:t) (y:t): bool=
-    (List.fold_left (fun acc s -> add_int(M.int_of_aliensym s) acc) 0 x) 
-      = (List.fold_left (fun acc s -> add_int(M.int_of_aliensym s) acc) 0 y)
+    (add_list x) = (add_list y)
 
   let int_of_nat (x:t): int =
-    (List.fold_left (fun acc s -> add_int(M.int_of_aliensym s) acc) 0 x)
+    add_list x
 
   let nat_of_int (x:int): t =
     let rec make_product (a: int)(b: t): t=
       if a = 0 then b
       else make_product (a-1) (M.one:: b) in
-    make_product(x) []
+    if (x >= 0) then (make_product x [])
+    else raise Unrepresentable 
 end
 
 
