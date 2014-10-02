@@ -2,21 +2,6 @@ open Assertions
 open Nats
 
 (* IntNat *)
-(* 
-module type NATN = sig                                                                               
-type t                                                                      
-    val zero : t
-    val one : t
-    val ( + ) : t -> t -> t
-    val ( * ) : t -> t -> t
-    val ( < ) : t -> t -> bool
-    exception Unrepresentable
-    val int_of_nat : t -> int
-    val nat_of_int : int -> t
-  end
-*)
-let veryBig = max_int+2
-(*let tooBig = IntNat.( + ) (IntNat.one) (IntNat.nat_of_int(max_int))*)
 
 (* test ( +) *)
 
@@ -60,9 +45,8 @@ TEST_UNIT "IntNat.int_of_nat_test3" = assert_true (IntNat.int_of_nat(IntNat.zero
 
 (* test (nat_of_int) *)
 
-TEST_UNIT "IntNat.nat_of_int_test1" = assert_true ((IntNat.nat_of_int(2)) = (IntNat.nat_of_int(2)))
-TEST_UNIT "IntNat.nat_of_int_test2" = assert_true ((IntNat.nat_of_int(0)) = IntNat.zero)
-TEST_UNIT "IntNat.nat_of_int_test3" = assert_raises (Some (IntNat.Unrepresentable)) IntNat.nat_of_int(-1)
+TEST_UNIT "IntNat.nat_of_int_test1" = assert_true ((IntNat.nat_of_int(0)) = IntNat.zero)
+TEST_UNIT "IntNat.nat_of_int_test2" = assert_raises (Some (IntNat.Unrepresentable)) IntNat.nat_of_int(-1)
 
 
 (* ListNat *)
@@ -115,13 +99,13 @@ module IntConvert = NatConvertFn(IntNat)
 
 (* int_of_nat *)
 
-TEST_UNIT "NatConvertFn_of_nat_test1" = assert_true ( (IntConvert.int_of_nat(IntNat.nat_of_int(8))) = 8)
-TEST_UNIT "NatConvertFn_of_nat_test2" = assert_true ( (IntConvert.int_of_nat(IntNat.nat_of_int(0))) = 0)
+TEST_UNIT "NatConvertFn.int_of_nat_test1" = assert_true ((IntConvert.int_of_nat(IntNat.nat_of_int(8))) = 8)
+TEST_UNIT "NatConvertFn.int_of_nat_test2" = assert_true ((IntConvert.int_of_nat(IntNat.nat_of_int(0))) = 0)
 
 (* nat_of_int *)
 
-TEST_UNIT "NatConvertFn_of_int_test1" = assert_raises (Some (IntNat.Unrepresentable)) IntConvert.nat_of_int(-1)
-TEST_UNIT "NatConvertFn_of_int_test2" = assert_true (IntConvert.nat_of_int(8) = IntNat.nat_of_int(8))
+TEST_UNIT "NatConvertFn.nat_of_int_test1" = assert_raises (Some (IntNat.Unrepresentable)) IntConvert.nat_of_int(-1)
+TEST_UNIT "NatConvertFn.nat_of_int_test2" = assert_true (IntConvert.nat_of_int(8) = IntNat.nat_of_int(8))
 
 (* AlienNatFn *)
 
@@ -173,7 +157,7 @@ TEST_UNIT "AlienNat.int_of_nat_test3" = assert_true ((AlienNat.int_of_nat(AlienN
 
 (* test (nat_of_int) *)
 
-TEST_UNIT "AlienNat.nat_of_int_test1" = assert_true (AlienNat.nat_of_int(2) = (AlienNat.nat_of_int(2)))
+TEST_UNIT "AlienNat.nat_of_int_test1" = assert_true (AlienNat.nat_of_int(2) = (AlienNat.( + ) (AlienNat.one) (AlienNat.one)))
 TEST_UNIT "AlienNat.nat_of_int_test2" = assert_true (AlienNat.nat_of_int(0) = AlienNat.zero)
 TEST_UNIT "AlienNat.nat_of_int_test3" = assert_raises (Some (AlienNat.Unrepresentable)) AlienNat.nat_of_int(-1)
 
