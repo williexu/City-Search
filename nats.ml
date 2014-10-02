@@ -118,15 +118,16 @@ module IntNat: NATN = struct
   let one = 1
   let ( + ) (x: int) (y:int): int = 
     let sum_overflows ( i1 : int ) ( i2 : int ) : bool =
-      (x + y + 1) < 0 in
+      (x + y) < 0 in
     if (sum_overflows x y) || (x < 0) || y < 0 then raise Unrepresentable 
     else x + y
 
   let ( * ) (x:int) (y: int): int = 
     let product_overflows ( i1 : int ) ( i2 : int ) : bool =
       (max_int/x)/y = 0 in
-    if (product_overflows x y) || (x < 0) || y < 0 then raise Unrepresentable 
-    else x * y
+    if x = 0 || y = 0 then 0 else
+      if (product_overflows x y) || (x < 0) || y < 0 then raise Unrepresentable 
+      else x * y
 
   let ( < ) (x:int) (y:int): bool =
     if  (x < 0) || y < 0 then raise Unrepresentable 
@@ -150,7 +151,11 @@ module ListNat: NATN = struct
   * natural number n . That is , the list lst represents
   * length ( lst ). The empty list represents 0. The values of
   * the list elements are irrelevant.
-  * ( * ) can only be used to make a product <= max_int
+  * 
+  * Although lists can be used to represent natural numbers with values greater
+  * than max_int, since many of the operators in this module utilize integers,
+  * the use of any lists representing values greater than max_int will be
+  * forbidden when using this module.
   *)
   type t = int list
   exception Unrepresentable
@@ -160,11 +165,15 @@ module ListNat: NATN = struct
   let ( + ) (x: int list) (y:int list): int list= 
     List.fold_left (fun acc z -> z:: acc) y x
 
-  let ( * ) (x:int list) (y: int list): int list= 
+  let ( * ) (x:int list) (y: int list): int list=
+    let product_overflows ( i1 : int list) ( i2 : int list) : bool =
+      (max_int/(List.length x))/(List.length y) = 0 in
+    if x = zero || y = zero then zero else
     let rec make_product (a: int)(b: int list): int list=
       if a = 0 then b
       else make_product (a-1) (0:: b) in
-    make_product((List.length x) * (List.length y)) []
+    if product_overflows x y then raise Unrepresentable
+    else make_product((List.length x) * (List.length y)) []
 
   let ( < ) (x:int list) (y:int list): bool =
     (List.length x) < (List.length y)

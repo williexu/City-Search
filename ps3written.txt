@@ -1,0 +1,58 @@
+Problem 1: Semantics
+
+Exercise 1
+
+(a) if (e0:int) and for some type t, e1:t and e2:t,
+    then (if e0 then e1 else e2) : t
+
+(b) a->'a->int
+
+(c) To evaluate if e0 then e1 else e2 in environment env,
+    
+    if env :: e0 --> v0 and 
+    if env :: v0 <> 0 and e1 --> v1 
+      then env :: if e0 then e1 else e2 --> v1
+    if env :: v0=0 and e2 --> v2 
+      then env :: if e0 then e1 else e2 --> v2 
+
+
+(d) match e0 with
+    | 0 -> e2
+    | _ -> e1
+
+Exercise 2
+
+Line 1 binds 1 to x creating environment {x = 1}
+Line 2 creates a closure and binds f to it, creating environment 
+  {x=1, f=<< fun y -> ( let x = y +1 in fun z -> x + y + z ), {x=1} >>}.
+Line 5 binds 3 to x, shadowing the previous binding and creating:
+  {x=3, f=<< fun y -> ( let x = y +1 in fun z -> x + y + z ), {x=1} >>}.
+In line 6, f evaluates to the closure:
+  << fun y -> ( let x = y +1 in fun z -> x + y + z ),{x=1} >>
+    applying that closure to 4 creates a environment {y = 4,x = 1};
+    the function body (let x = y +1 in fun z -> x + y + z) evaluates to
+    let x = 4 + 1 in (fun z -> x + y + z) with environment {y = 4,x = 1}
+  --> let x = 5 in (fun z -> x + y + z) with environment {y = 4,x = 1}
+  --> fun z -> x + y + z with environment {y = 4, x = 5} (x=5 shadows x=1)
+  --> fun z -> 5 + 4 + z with environment {y = 4, x = 5} 
+  --> fun z -> 9 + z with environment {y = 4, x = 5} 
+Now, that we move outside of function f, line 6 now has the environment:
+  {x=3, g = <<fun z -> 9 + z, {y = 4, x = 5}>>, 
+  f= << fun y -> ( let x = y +1 in fun z -> x + y + z ), {x=1} >>}
+Line 7 binds 5 to y, creating environment:
+  {x=3, y = 5, g = <<fun z -> 9 + z, {y = 4, x = 5}>>, 
+  f= << fun y -> ( let x = y +1 in fun z -> x + y + z ), {x=1} >>}
+In line 8, g evaluates to the closure:
+  <<fun z -> 9 + z, {y = 4, x = 5}>>
+    applying that closure to 6 creates an environment {z = 6, y = 4, x = 5};
+    the function body 9 + z evaluates to 9 + 6 which evaluates to 15 in that
+    same environment. 
+  15 is now bound to z in line 8.
+In line 9, z just evaluates to 15, so the entire expression evaluates to 15.
+
+
+Problem 4:
+
+We both contributed evenly to every problem. We each did each function/module
+on our own and then compared answers. We liked this problem set much more than
+the last one. 
