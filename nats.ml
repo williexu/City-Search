@@ -82,7 +82,7 @@ module type NATN = sig
     *)
   val int_of_nat: t -> int
 
-  (* This function is used to convert from the int type number to a natural number.
+  (** This function is used to convert from the int type number to a natural number.
     * Arguments : It takes in a value of type int.
     * Pre-condition : Argument must be of type int.
     * Post-condition : The functions returns the natural number representation of int if possible.
@@ -110,18 +110,42 @@ let sum_overflows (i1:int) (i2:int) : bool =
    and AlienNatFn, being careful to use the declarations and
    types specified in the problem set. *)
 
+
 module IntNat: NATN = struct
+(** Each int represents the corresponding natural number n . Obviously, 
+  * negative numbers would be an invalid natural number and large natural
+  * numbers greater than max_int cannot be represented.
+  *)
   type t = int
   exception Unrepresentable
 
   let zero = 0
   let one = 1
+
+(** This function is used to add two natural numbers of type t (int).
+  * Arguments : It takes in two arguments x,y of type t.
+  * Pre-condition : Arguments must be of type t (int).
+  * Post-condition : The functions returns the natural number representation 
+  * of x + y if possible.
+  * not all values of type int are representable as natural numbers (like -1),
+  * and having a sum greater than max_int is not possible, therefore
+  * this function raises the Unrepresantable exception in such scenarios. 
+  *)
   let ( + ) (x: int) (y:int): int = 
     let sum_overflows ( i1 : int ) ( i2 : int ) : bool =
       (x + y) < 0 in
     if (sum_overflows x y) || (x < 0) || y < 0 then raise Unrepresentable 
     else x + y
 
+(** This function is used to add multiply natural numbers of type t (int).
+  * Arguments : It takes in two arguments x,y of type t.
+  * Pre-condition : Arguments must be of type t (int).
+  * Post-condition : The functions returns the natural number representation 
+  * of x * y if possible.
+  * not all values of type int are representable as natural numbers (like -1),
+  * and having a product greater than max_int is not possible, therefore
+  * this function raises the Unrepresantable exception in such scenarios. 
+  *)
   let ( * ) (x:int) (y: int): int = 
     let product_overflows ( i1 : int ) ( i2 : int ) : bool =
       (max_int/x)/y = 0 in
@@ -129,61 +153,147 @@ module IntNat: NATN = struct
       if (product_overflows x y) || (x < 0) || y < 0 then raise Unrepresentable 
       else x * y
 
+(** This function is used to compare natural numbers of type t (int), returning
+  * true if the first argument is less than the second, false otherwise
+  * Arguments : It takes in two arguments x,y of type t.
+  * Pre-condition : Arguments must be of type t (int).
+  * Post-condition : The functions returns a bool representating x < y if 
+  * possible.
+  * not all values of type int are representable as natural numbers (like -1),
+  * therefore this function raises the Unrepresantable exception in this case.
+  *)
   let ( < ) (x:int) (y:int): bool =
     if  (x < 0) || y < 0 then raise Unrepresentable 
     else x < y
 
+(** This function is used to compare natural numbers of type t (int), returning
+  * if the two numbers are equal
+  * Arguments : It takes in two arguments x,y of type t.
+  * Pre-condition : Arguments must be of type t (int).
+  * Post-condition : The functions returns a bool representing x = y if
+  * possible
+  * not all values of type int are representable as natural numbers (like -1),
+  * therefore this function raises the Unrepresantable exception in this case.
+  *)
   let ( === ) (x:int) (y:int): bool=
     if  (x < 0) || y < 0 then raise Unrepresentable 
     else x = y
 
+(** This function is used to convert a natural number of type t (int) into 
+  * an int.
+  * Arguments : It takes in one argument x of type t.
+  * Pre-condition : Argument must be of type t (int).
+  * Post-condition : The functions returns an int representing the argument.
+  * a natural number cannot be used as an argument,
+  * therefore this function raises the Unrepresantable exception in this case.
+  *)
   let int_of_nat (x:int): int =
     if  (x < 0) then raise Unrepresentable 
     else x
 
+(** This function is used to convert a natural number of type int into 
+  * a natural number of type t (int).
+  * Arguments : It takes in one argument x of type int.
+  * Pre-condition : Argument must be of type int.
+  * Post-condition : The functions returns an int representing the argument.
+  * not all values of type int are representable as natural numbers (like -1),
+  * therefore this function raises the Unrepresantable exception in this case.
+  *)
   let nat_of_int (x:int): int =
     if  (x < 0) then raise Unrepresentable 
     else x
 end
+
 
 module ListNat: NATN = struct
 (** The list [ a1 ; ...; an ] represents the
   * natural number n . That is , the list lst represents
   * length ( lst ). The empty list represents 0. The values of
   * the list elements are irrelevant.
-  * 
-  * Although lists can be used to represent natural numbers with values greater
-  * than max_int, since many of the operators in this module utilize integers,
-  * the use of any lists representing values greater than max_int will be
-  * forbidden when using this module.
   *)
   type t = int list
   exception Unrepresentable
 
   let zero = []
   let one = [0]
+
+let add_list (z:t): int = (List.fold_left (fun acc s -> 
+    let (new_acc: int)= 1 + acc in
+      if (new_acc < 0) then raise Unrepresentable else new_acc) 0 z)
+
+(** This function is used to add two natural numbers of type t (int list).
+  * Arguments : It takes in two arguments x,y of type t.
+  * Pre-condition : Arguments must be of type t (int list).
+  * Post-condition : The functions returns the natural number representation 
+  * of x + y.
+  *)
   let ( + ) (x: int list) (y:int list): int list= 
     List.fold_left (fun acc z -> z:: acc) y x
 
+(** This function is used to multiply two natural numbers of type t (int list).
+  * Arguments : It takes in two arguments x,y of type t.
+  * Pre-condition : Arguments must be of type t (int list). x and y cannot 
+  * represent numbers greater than max_int
+  * Post-condition : The functions returns the natural number representation 
+  * of x * y if possible.
+  * Since having a product greater than max_int or having arguments greater 
+  * than max_int is not possible using this method,
+  * therefore this function raises the Unrepresantable exception in this 
+  * scenario. 
+  *)
   let ( * ) (x:int list) (y: int list): int list=
     let product_overflows ( i1 : int list) ( i2 : int list) : bool =
-      (max_int/(List.length x))/(List.length y) = 0 in
+      (max_int/(add_list x))/(add_list y) = 0 in
     if x = zero || y = zero then zero else
     let rec make_product (a: int)(b: int list): int list=
       if a = 0 then b
       else make_product (a-1) (0:: b) in
     if product_overflows x y then raise Unrepresentable
-    else make_product((List.length x) * (List.length y)) []
+    else make_product((add_list x) * (add_list y)) []
 
+(** This function is used to compare two natural numbers of type t (int list).
+  * It returns a bool representing x < y where x and y are natural numbers.
+  * Arguments : It takes in two arguments x,y of type t.
+  * Pre-condition : Arguments must be of type t (int list). x and y cannot 
+  * represent numbers greater than max_int
+  * Post-condition : The functions returns a bool representing 
+  * x < y if possible.
+  * Having arguments greater than max_int will raise Unrepresentable
+  *)
   let ( < ) (x:int list) (y:int list): bool =
-    (List.length x) < (List.length y)
+    (add_list x) < (add_list y)
 
+(** This function is used to compare two natural numbers of type t (int list).
+  * It returns a bool representing x = y where x and y are natural numbers.
+  * Arguments : It takes in two arguments x,y of type t.
+  * Pre-condition : Arguments must be of type t (int list). x and y cannot 
+  * represent numbers greater than max_int
+  * Post-condition : The functions returns a bool representing 
+  * x = y if possible.
+  * Having arguments greater than max_int will return Unrepresentable
+  *)
   let ( === ) (x:int list) (y:int list): bool=
-    (List.length x) = (List.length y)
+    (add_list x) = (add_list y)
 
+(** This function is used to convert a natural number of type t (int list) into
+  * an int
+  * Arguments : It takes in one argument x of type t.
+  * Pre-condition : Arguments must be of type t (int list). x cannot 
+  * represent numbers greater than max_int
+  * Post-condition : The functions returns an int representing 
+  * x if possible.
+  * Having an argument greater than max_int will return Unrepresentable
+  *)
   let int_of_nat (x:int list): int =
-    List.length x
+    add_list x
 
+(** This function is used to convert an int into a natural number of type
+  * t (int list)
+  * Arguments : It takes in one argument x of type int.
+  * Pre-condition : Arguments must be of type int.
+  * Post-condition: The functions returns a natural number of type t (int list)
+  * representing x if possible.
+  *)
   let nat_of_int (x: int) : int list =
     let rec make_product (a: int)(b: int list): int list=
       if a = 0 then b
@@ -192,11 +302,19 @@ module ListNat: NATN = struct
     else raise Unrepresentable 
 end
 
+(** This function takes in a module of NATN and uses the conversion methods
+  * in said module
+  * Arguments : It takes in a Module of type NATN.
+  * Pre-condition : Argument must be module of type NATN.
+  * Post-condition : The functions returns a structure utilizing the conversion
+  * methods in the argument module.
+  *)
 module NatConvertFn ( N : NATN ) = struct
   let int_of_nat ( n : N . t ): int = N.int_of_nat n
   let nat_of_int ( n : int ): N . t = N.nat_of_int n
 end
 
+(* helper to allow int addition in module *)
 let add_int (a: int)(b: int): int = a + b
 
 module AlienNatFn ( M : AlienMapping ): NATN = struct
@@ -219,9 +337,24 @@ module AlienNatFn ( M : AlienMapping ): NATN = struct
 
   let zero = []
   let one = [M.one] 
+
+(** This function is used to add two natural numbers of type t.
+  * Arguments : It takes in two arguments x,y of type t.
+  * Pre-condition : Arguments must be of type t (M.aliensym list).
+  * Post-condition : The function returns the natural number representation 
+  * of x + y.
+  *)
   let ( + ) (x: t) (y: t): t = 
     List.fold_left (fun acc s -> s:: acc) x y
 
+(** This function is used to multiply two natural numbers of type t.
+  * Arguments : It takes in two arguments x,y of type t.
+  * Pre-condition : Arguments must be of type t (M.aliensym list).
+  * Post-condition : The function returns the natural number representation 
+  * of x * y. This method cannot return a product greater than max_int or take
+  * in arguments representing numbers greater than
+  * max_int so it raises Unrepresentable in these cases.
+  *)
   let ( * ) (x: t) (y: t): t = 
     let rec make_product (a: int)(b: t): t=
       if a = 0 then b
@@ -234,15 +367,47 @@ module AlienNatFn ( M : AlienMapping ): NATN = struct
       if (product_overflows xint yint) then raise Unrepresentable 
       else make_product(xint * yint) []
 
+(** This function is used to compare two natural numbers of type t, returning
+  * true if the first is less than the second and false otherwise
+  * Arguments : It takes in two arguments x,y of type t.
+  * Pre-condition : Arguments must be of type t (M.aliensym list).
+  * Post-condition : The function returns a bool representing x < y. 
+  * This method cannot take in arguments representing numbers greater than
+  * max_int so it raises Unrepresentable in these cases.
+  *)
   let ( < ) (x:t) (y:t): bool =
     (add_list x) < (add_list y)
 
+(** This function is used to compare two natural numbers of type t, returning
+  * true if the first is equal to the second and false otherwise
+  * Arguments : It takes in two arguments x,y of type t.
+  * Pre-condition : Arguments must be of type t (M.aliensym list).
+  * Post-condition : The function returns a bool representing x = y. 
+  * This method cannot take in arguments representing numbers greater than
+  * max_int so it raises Unrepresentable in these cases.
+  *)
   let ( === ) (x:t) (y:t): bool=
     (add_list x) = (add_list y)
 
+(** This function converts a natural number of type t into an int
+  * Arguments : It takes in one argument x of type t.
+  * Pre-condition : Argument must be of type t (M.aliensym list).
+  * Post-condition : The function returns an int representing the argument
+  * if possible. 
+  * This method cannot take in an argument representing a number greater than
+  * max_int so it raises Unrepresentable in this case.
+  *)
   let int_of_nat (x:t): int =
     add_list x
 
+(** This function converts an int into a natural number of type t
+  * Arguments : It takes in one argument x of type int.
+  * Pre-condition : Argument must be of type int.
+  * Post-condition : The function returns a natural number of type t
+  * representing the argument if possible. 
+  * This method cannot take in an argument that is negative so it raises
+  * Unrepresentable in this case.
+  *)
   let nat_of_int (x:int): t =
     let rec make_product (a: int)(b: t): t=
       if a = 0 then b

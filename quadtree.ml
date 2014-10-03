@@ -31,20 +31,41 @@ exception OutOfBounds
   *)
 let new_tree (r:region) : 'a quadtree =
   Leaf (r, [])
-        
+  
+(** This helper function returns if a coordinate in inside a region
+  * Argument: Takes in a c: coord and a r:region
+  * Precondition: c is a coord, r is a region)
+  * Postcondition: true if coord is in region, false otherwise
+  *)             
 let cor_in_region (c : coord) (r : region) =
   match r with
   | (r1,r2) -> (fst c >= fst r1) && (fst c <= fst r2) && (snd c >= snd r1)
     && (snd c <= snd r2)
 
+(** This function inserts an object into a given quadtree
+  * at a given coordinate. If the coordinate is outside the region
+  * represented by the tree, the OutOfBounds exception is raised.
+  
+  * Arguments: It takes in a an 'a quadtree q, a coordinate c of type coord and
+  * the object s of type 'a to be inserted.
+
+  * Pre-condition: q must be an 'a quadtree, c must be a coord i.e.
+  * a (float*float) and s must be of type 'a
+
+  * Post-condition: The function returns an 'a quadtree with all the objects
+  * of the original quadtree q as well as the object s inserted at coord c.
+  * If the coordinate c is outside the region represented by q, no insertion
+  * takes place. Instead, the OutOfBounds exception is raised.
+  *)
 let rec insert (q: 'a quadtree) (c : coord) (s:'a) : 'a quadtree =
   match q with 
   | Node (r,q1,q2,q3,q4) -> 
     if (cor_in_region c r) then
       let mid_x : float= (fst(fst r) +. fst(snd r)) /. 2.0 in
       let mid_y : float= (snd(fst r) +. snd(snd r)) /. 2.0 in
-      if snd c >= mid_y then if fst c >= mid_x then Node(r,insert q1 c s,q2,q3,q4)
-                             else Node(r,q1,insert q2 c s,q3,q4)
+      if snd c >= mid_y then 
+        if fst c >= mid_x then Node(r,insert q1 c s,q2,q3,q4)
+          else Node(r,q1,insert q2 c s,q3,q4)
       else if fst c >= mid_x then Node(r,q1,q2,q3,insert q4 c s)
            else Node(r,q1,q2,insert q3 c s,q4)
     else raise OutOfBounds
@@ -66,7 +87,25 @@ let rec insert (q: 'a quadtree) (c : coord) (s:'a) : 'a quadtree =
       else Leaf (reg,(c,s) :: lst)
     else raise OutOfBounds 
 
-							      
+(** This function folds the function argument over the quadtree passed to it
+  * starting with the accumulator argument of type ’a. It applies the function
+  * argument to every object in the quadtree.
+
+  * Arguments:  1) A function f which takes in an 'a type and a tuple of a coord
+  *               and a 'b type, and returns an 'a type.
+  *             2) An accumulator a of type 'a
+  *             3) A quadtree t of type 'b
+
+  * Pre-condition:  1) f takes in an 'a type and a (coord*'b) tuple. It returns an
+  *                  'a type.
+  *                 2) The accumulator a must be of type 'a.
+  *                 3) The quadtree t must be of type 'b
+
+  * Post-condition: The function returns the accumulator of type 'a, which is
+  * the result of folding f over the quadtree t, and applying f to every object
+  * in the quadtree t. If the quadtree has no objects, it simply returns the
+  * accumulator a:'a. 
+  *) 					      
 let rec fold_quad (f: 'a -> (coord * 'b)  -> 'a)
 		  (a: 'a) (t: 'b quadtree): 'a 
   = match t with
@@ -76,7 +115,28 @@ let rec fold_quad (f: 'a -> (coord * 'b)  -> 'a)
       match lst with 
       | [] -> a
       | x::xs -> fold_quad f (f a x) (Leaf(reg,xs))
-	   
+	
+(** This function folds the function argument over the quadtree, but only
+  * applies it to those objects in the quadtree that are within the
+  * region argument.
+
+  * Arguments:  1) A function f which takes in an 'a type and a tuple of a coord
+  *               and a 'b type, and returns an 'a type.
+  *             2) An accumulator a of type 'a
+  *             3) A quadtree t of type 'b
+  *             4) A region r of type region.
+  * Pre-condition:  1) f takes in an 'a type and a (coord*'b) tuple. It returns an
+  *                  'a type.
+  *                 2) The accumulator a must be of type 'a.
+  *                 3) The quadtree t must be of type 'b
+  *                 4) A region r of type region. Region is a (coord*coord) and coord is a
+  *                   (float*float).
+
+  * Post-condition: The function returns the accumulator of type 'a, which is
+  * the result of folding f over the quadtree t, but applying f to to only
+  * those objects in the quadtree t that are within the region argument r.
+  * If the quadtree has no objects, it simply returns the accumulator a:'a.
+  *)     
 let rec fold_region (f: 'a -> coord * 'b -> 'a) (a : 'a) (t : 'b quadtree) 
   (r : region) : 'a
   = match t with
